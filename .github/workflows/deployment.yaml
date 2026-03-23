@@ -28,6 +28,7 @@ jobs:
         with:
           repository: tusharguptaJ/DEVOPS-Tushar-UID00705-Devops-Assignment-Helm-Chart
           ref: main
+          path: my-app
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
