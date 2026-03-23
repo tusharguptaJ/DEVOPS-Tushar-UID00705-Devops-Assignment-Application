@@ -9,6 +9,7 @@ env:
   REPO_NAME: my-first-docker-repo
   IMAGE_TAG: ${{ github.sha }}
   IMAGE_REGISTRY: us-central1-docker.pkg.dev
+  namespace: prod
 
 permissions:
   contents: read
@@ -49,7 +50,7 @@ jobs:
 
       - name: Helm Deploy
         run: |
-              helm upgrade --install my-app . \
+              helm upgrade --install my-app . -n induction-app --create-namespace \
               -f ../.helm/commonValues.yaml \
               --set global.registry=${{ env.IMAGE_REGISTRY }} \
               --set backend-frontend.deployments.backend.container.image.repository=${{ vars.PROJECT_ID }}/${{ env.REPO_NAME }}/backend  \
