@@ -58,7 +58,7 @@ jobs:
       - name: Helm Deploy
         working-directory: ./my-helm-chart
         run: |          
-          helm upgrade --install induction-app -n induction-app --create-namespace \
+          helm upgrade --install induction-app . -n induction-app --create-namespace \
           --set global.registry=${{ env.IMAGE_REGISTRY }} \
           --set backend-frontend.deployments.backend.container.image.repository=${{ vars.PROJECT_ID }}/${{ env.REPO_NAME }}/backend \
           --set backend-frontend.deployments.backend.container.image.tag=${{ env.IMAGE_TAG }} \
