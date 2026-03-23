@@ -4,6 +4,7 @@ on:
     workflows: ["build and push image"]
     types:
       - completed
+  
 env:
   GKE_ZONE: us-central1-a
   REPO_NAME: my-first-docker-repo
