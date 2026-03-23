@@ -1,0 +1,57 @@
+name: deploy to gke
+on: 
+  workflow_run:
+    workflows: ["Building Images"]
+    types:
+      - completed
+env:
+  GKE_ZONE: us-central1-a
+  REPO_NAME: my-first-docker-repo
+  IMAGE_TAG: ${{ github.sha }}
+  IMAGE_REGISTRY: us-central1-docker.pkg.dev
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    environment: prod
+    runs-on: ubuntu-22.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    defaults:
+      run:
+        working-directory: my-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: tusharguptaJ/DEVOPS-Tushar-UID00705-Devops-Assignment-Helm-Chart
+          ref: main
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.SERVICE_ACCOUNT }}
+          
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ vars.GKE_CLUSTER_NAME }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4.3.0
+
+      - name: Helm Deploy
+        run: |
+              helm upgrade --install my-app . \
+              -f ../.helm/commonValues.yaml \
+              --set global.registry=${{ env.IMAGE_REGISTRY }} \
+              --set backend-frontend.deployments.backend.container.image.repository=${{ vars.PROJECT_ID }}/${{ env.REPO_NAME }}/backend  \
+              --set backend-frontend.deployments.backend.container.image.tag=${{ env.IMAGE_TAG }} \
+              --set backend-frontend.deployments.frontend.container.image.repository=${{ vars.PROJECT_ID }}/${{ env.REPO_NAME }}/frontend  \
+              --set backend-frontend.deployments.frontend.container.image.tag=${{ env.IMAGE_TAG }} \

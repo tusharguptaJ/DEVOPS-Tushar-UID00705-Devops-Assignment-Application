@@ -1,0 +1,45 @@
+name: build and push image
+on:
+  push:
+    branches: [main, dev]
+
+env:
+  REPO_NAME: my-first-docker-repo
+  REGION: us-central1
+  IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-push:
+    environment: prod
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        service: [frontend, backend]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: ./${{ matrix.service }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and Push
+        working-directory: ./${{ matrix.service }}
+        run: |
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/$REPO_NAME/${{ matrix.service }}:$IMAGE_TAG .
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ vars.PROJECT_ID }}/$REPO_NAME/${{ matrix.service }}:$IMAGE_TAG
