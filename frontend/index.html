@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h2>GCP Free Tier App</h2>
+    <input id="msgInput" placeholder="Type a message...">
+    <button onclick="saveMessage()">Send</button>
+    <ul id="list"></ul>
+
+    <script>
+        async function loadMessages() {
+            const res = await fetch('/api/messages');
+            const data = await res.json();
+            document.getElementById('list').innerHTML = data.map(m => `<li>${m.text}</li>`).join('');
+        }
+
+        async function saveMessage() {
+            const text = document.getElementById('msgInput').value;
+            await fetch('/api/messages', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text })
+            });
+            document.getElementById('msgInput').value = '';
+            loadMessages();
+        }
+
+        loadMessages(); 
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+backend-frontend:
+  config:
+    backend:
+      data:
+        PORT: 8080
+        DB_NAME: "blog"
+        DB_HOST: "db"
